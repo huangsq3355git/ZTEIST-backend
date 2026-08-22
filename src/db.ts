@@ -58,12 +58,14 @@ function initSchema(db: DB): void {
       role         TEXT,                -- 岗位：研发/市场/HR/...
       tech_domain  TEXT,                -- 技术方向：硬件/软件/算法/...
       department   TEXT,
+      level        TEXT,                -- 职级（认证用）
       wechat       TEXT,                -- 隐私
       linkedin     TEXT,                -- 隐私（外籍）
       whatsapp     TEXT,                -- 隐私（外籍）
       phone        TEXT,                -- 隐私
       invite_code  TEXT,                -- 注册用的分享码（归因）
       referrer_uid TEXT,                -- 推荐人 uid
+      member_type  TEXT NOT NULL DEFAULT 'trial',  -- trial=观察期/member=认证会员/expert=专家库/user=普通
       created_at   INTEGER NOT NULL
     );
 
@@ -120,7 +122,18 @@ function initSchema(db: DB): void {
     );
   `)
 
+  // 迁移：CREATE TABLE IF NOT EXISTS 不会给已存在的表补列，这里兜底
+  ensureColumn(db, 'members', 'level', 'level TEXT')
+  ensureColumn(db, 'members', 'member_type', "member_type TEXT NOT NULL DEFAULT 'trial'")
+
   seedCountries(db)
+}
+
+function ensureColumn(db: DB, table: string, column: string, ddl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`)
+  }
 }
 
 function seedCountries(db: DB): void {

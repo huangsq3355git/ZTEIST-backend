@@ -24,6 +24,7 @@ export interface MemberInput {
   role?: string | null
   techDomain?: string | null
   department?: string | null
+  level?: string | null
   wechat?: string | null
   linkedin?: string | null
   whatsapp?: string | null
@@ -42,12 +43,14 @@ export interface MemberRow {
   role: string | null
   tech_domain: string | null
   department: string | null
+  level: string | null
   wechat: string | null
   linkedin: string | null
   whatsapp: string | null
   phone: string | null
   invite_code: string | null
   referrer_uid: string | null
+  member_type: string
   created_at: number
 }
 
@@ -70,10 +73,12 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
     .prepare(
       `INSERT INTO members (
          uid, name, name_en, country, era_start, era_end, product_line,
-         role, tech_domain, department, wechat, linkedin, whatsapp, phone, created_at
+         role, tech_domain, department, level, member_type,
+         wechat, linkedin, whatsapp, phone, created_at
        ) VALUES (
          @uid, @name, @nameEn, @country, @eraStart, @eraEnd, @productLine,
-         @role, @techDomain, @department, @wechat, @linkedin, @whatsapp, @phone, @createdAt
+         @role, @techDomain, @department, @level, @memberType,
+         @wechat, @linkedin, @whatsapp, @phone, @createdAt
        )`
     )
     .run({
@@ -87,6 +92,8 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
       role: input.role ?? null,
       techDomain: input.techDomain ?? null,
       department: input.department ?? null,
+      level: input.level ?? null,
+      memberType: 'trial', // 新注册默认观察期，认证/升级走后续流程
       wechat: input.wechat ?? null,
       linkedin: input.linkedin ?? null,
       whatsapp: input.whatsapp ?? null,
