@@ -6,6 +6,7 @@ import * as auth from './auth'
 import * as invite from './invite'
 import * as members from './members'
 import * as search from './search'
+import * as market from './market'
 
 const app = Fastify({ logger: true })
 const db = getDb()
@@ -149,6 +150,29 @@ app.get<{ Querystring: Record<string, string> }>('/api/people', async (req, repl
   const uid = requireUid(req)
   if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
   return search.searchMembers(db, parsePeopleParams(req.query))
+})
+
+// ---- 供求/招聘/项目（需登录，仅公开字段） ----
+app.get<{ Querystring: Record<string, string> }>('/api/supply-demand', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  return market.listSupplyDemand(db, {
+    type: req.query.type,
+    category: req.query.category,
+    country: req.query.country,
+  })
+})
+
+app.get<{ Querystring: Record<string, string> }>('/api/jobs', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  return market.listJobs(db, { role: req.query.role, country: req.query.country })
+})
+
+app.get<{ Querystring: Record<string, string> }>('/api/projects', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  return market.listProjects(db, { category: req.query.category, country: req.query.country })
 })
 
 const port = Number(process.env.PORT ?? 3003)

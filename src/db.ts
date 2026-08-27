@@ -123,6 +123,22 @@ function initSchema(db: DB): void {
       status       TEXT NOT NULL DEFAULT 'active',
       created_at   INTEGER NOT NULL
     );
+
+    -- 项目（独立发布，区别于供求）
+    CREATE TABLE IF NOT EXISTS projects (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      uid         TEXT NOT NULL,
+      title       TEXT NOT NULL,
+      category    TEXT,                -- 项目类型：出海/本地化/技术合作/供应链/落地服务
+      description TEXT,
+      country     TEXT,
+      budget      TEXT,                -- 预算（可选）
+      timeline    TEXT,                -- 周期（可选）
+      contact     TEXT,                -- 联系方式（隐私分级）
+      status      TEXT NOT NULL DEFAULT 'active',
+      expiry      INTEGER,
+      created_at  INTEGER NOT NULL
+    );
   `)
 
   // 迁移：CREATE TABLE IF NOT EXISTS 不会给已存在的表补列，这里兜底
