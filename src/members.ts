@@ -12,6 +12,11 @@ export const PUBLIC_MEMBER_COLS = [
   'role',
   'tech_domain',
   'department',
+  'industry',
+  'employment_status',
+  'province',
+  'level',
+  'member_type',
 ]
 
 export interface MemberInput {
@@ -24,6 +29,9 @@ export interface MemberInput {
   role?: string | null
   techDomain?: string | null
   department?: string | null
+  industry?: string | null
+  employmentStatus?: string | null
+  province?: string | null
   level?: string | null
   wechat?: string | null
   linkedin?: string | null
@@ -43,6 +51,9 @@ export interface MemberRow {
   role: string | null
   tech_domain: string | null
   department: string | null
+  industry: string | null
+  employment_status: string | null
+  province: string | null
   level: string | null
   wechat: string | null
   linkedin: string | null
@@ -72,12 +83,12 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
   const info = db
     .prepare(
       `INSERT INTO members (
-         uid, name, name_en, country, era_start, era_end, product_line,
-         role, tech_domain, department, level, member_type,
+         uid, name, name_en, country, province, era_start, era_end, product_line,
+         role, tech_domain, industry, employment_status, department, level, member_type,
          wechat, linkedin, whatsapp, phone, created_at
        ) VALUES (
-         @uid, @name, @nameEn, @country, @eraStart, @eraEnd, @productLine,
-         @role, @techDomain, @department, @level, @memberType,
+         @uid, @name, @nameEn, @country, @province, @eraStart, @eraEnd, @productLine,
+         @role, @techDomain, @industry, @employmentStatus, @department, @level, @memberType,
          @wechat, @linkedin, @whatsapp, @phone, @createdAt
        )`
     )
@@ -86,11 +97,14 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
       name,
       nameEn: input.nameEn ?? null,
       country,
+      province: input.province ?? null,
       eraStart: input.eraStart ?? null,
       eraEnd: input.eraEnd ?? null,
       productLine: input.productLine ?? null,
       role: input.role ?? null,
       techDomain: input.techDomain ?? null,
+      industry: input.industry ?? null,
+      employmentStatus: input.employmentStatus ?? null,
       department: input.department ?? null,
       level: input.level ?? null,
       memberType: 'trial', // 新注册默认观察期，认证/升级走后续流程

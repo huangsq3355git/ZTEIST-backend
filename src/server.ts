@@ -124,20 +124,31 @@ app.get('/api/invite/generate', async (req, reply) => {
 })
 
 // ---- 搜索（需登录，仅返回公开字段） ----
-app.get<{ Querystring: Record<string, string> }>('/api/search', async (req, reply) => {
-  const uid = requireUid(req)
-  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
-
-  const q = req.query
-  const params: search.SearchParams = {
+function parsePeopleParams(q: Record<string, string>): search.SearchParams {
+  return {
     country: q.country,
+    province: q.province,
     productLine: q.productLine,
     role: q.role,
     techDomain: q.techDomain,
+    industry: q.industry,
+    employmentStatus: q.employmentStatus,
     eraStart: q.eraStart ? Number(q.eraStart) : undefined,
     eraEnd: q.eraEnd ? Number(q.eraEnd) : undefined,
   }
-  return search.searchMembers(db, params)
+}
+
+app.get<{ Querystring: Record<string, string> }>('/api/search', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  return search.searchMembers(db, parsePeopleParams(req.query))
+})
+
+// ---- 人员列表（浏览面，需登录） ----
+app.get<{ Querystring: Record<string, string> }>('/api/people', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  return search.searchMembers(db, parsePeopleParams(req.query))
 })
 
 const port = Number(process.env.PORT ?? 3003)

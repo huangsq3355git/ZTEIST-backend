@@ -3,11 +3,14 @@ import { PUBLIC_MEMBER_COLS } from './members'
 
 export interface SearchParams {
   country?: string
+  province?: string
   eraStart?: number
   eraEnd?: number
   productLine?: string
   role?: string
   techDomain?: string
+  industry?: string
+  employmentStatus?: string
 }
 
 export interface PublicMember {
@@ -21,6 +24,11 @@ export interface PublicMember {
   role: string | null
   tech_domain: string | null
   department: string | null
+  industry: string | null
+  employment_status: string | null
+  province: string | null
+  level: string | null
+  member_type: string
 }
 
 /**
@@ -35,6 +43,10 @@ export function searchMembers(db: DB, params: SearchParams, limit = 50): PublicM
     where.push('country = ?')
     args.push(params.country)
   }
+  if (params.province) {
+    where.push('province = ?')
+    args.push(params.province)
+  }
   if (params.productLine) {
     where.push('product_line = ?')
     args.push(params.productLine)
@@ -46,6 +58,14 @@ export function searchMembers(db: DB, params: SearchParams, limit = 50): PublicM
   if (params.techDomain) {
     where.push('tech_domain = ?')
     args.push(params.techDomain)
+  }
+  if (params.industry) {
+    where.push('industry = ?')
+    args.push(params.industry)
+  }
+  if (params.employmentStatus) {
+    where.push('employment_status = ?')
+    args.push(params.employmentStatus)
   }
   // 年代区间重叠：成员入职 <= 搜索结束年，且（仍在职 或 离职 >= 搜索开始年）
   if (params.eraStart != null) {

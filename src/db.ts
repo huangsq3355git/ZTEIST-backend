@@ -51,12 +51,15 @@ function initSchema(db: DB): void {
       uid          TEXT NOT NULL UNIQUE REFERENCES accounts(uid),
       name         TEXT NOT NULL,
       name_en      TEXT,                -- 英文名/拼音（外籍）
-      country      TEXT NOT NULL,       -- 用户注册时必填（自选，全世界）
+      country      TEXT NOT NULL,       -- 所在地国家（现状，自选全世界）
+      province     TEXT,                -- 所在省份（现状，国内用户）
       era_start    INTEGER,             -- 入职年
       era_end      INTEGER,             -- 离职年
       product_line TEXT,                -- 产品线：手机/基站/芯片/...
       role         TEXT,                -- 岗位：研发/市场/HR/...
       tech_domain  TEXT,                -- 技术方向：硬件/软件/算法/...
+      industry     TEXT,                -- 当前行业（现状）
+      employment_status TEXT,           -- 在职状态：创业/在职/退休/自由职业
       department   TEXT,
       level        TEXT,                -- 职级（认证用）
       wechat       TEXT,                -- 隐私
@@ -125,6 +128,9 @@ function initSchema(db: DB): void {
   // 迁移：CREATE TABLE IF NOT EXISTS 不会给已存在的表补列，这里兜底
   ensureColumn(db, 'members', 'level', 'level TEXT')
   ensureColumn(db, 'members', 'member_type', "member_type TEXT NOT NULL DEFAULT 'trial'")
+  ensureColumn(db, 'members', 'province', 'province TEXT')
+  ensureColumn(db, 'members', 'industry', 'industry TEXT')
+  ensureColumn(db, 'members', 'employment_status', 'employment_status TEXT')
 
   seedCountries(db)
 }
