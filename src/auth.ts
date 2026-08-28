@@ -84,8 +84,30 @@ export async function sendAuthCode(email: string, code: string): Promise<void> {
     console.log(`[auth] 无 RESEND_API_KEY，验证码 ${code} 仅日志（email=${email}）`)
     return
   }
-  // TODO: 接 Resend 发送（AIF 复用逻辑）
-  console.log(`[auth] 发送验证码 ${code} 到 ${email}`)
+
+  const from = process.env.RESEND_FROM ?? 'ZTEIST 中友会 <noreply@zteist.com>'
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: '【ZTEIST 中友会】登录验证码',
+        html: `<p>你的验证码是：<strong>${code}</strong></p><p>10 分钟内有效，请勿泄露。</p>`,
+      }),
+    })
+    if (!res.ok) {
+      console.error(`[auth] Resend 发送失败：${res.status} ${await res.text()}`)
+      return
+    }
+    console.log(`[auth] 验证码已发送到 ${email}`)
+  } catch (e) {
+    console.error('[auth] Resend 发送异常', e)
+  }
 }
 
 export type VerifyCodeResult =
