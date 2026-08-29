@@ -2,6 +2,7 @@ import type { DB } from './db'
 import { PUBLIC_MEMBER_COLS } from './members'
 
 export interface SearchParams {
+  q?: string
   country?: string
   province?: string
   eraStart?: number
@@ -39,6 +40,11 @@ export function searchMembers(db: DB, params: SearchParams, limit = 50): PublicM
   const where: string[] = []
   const args: unknown[] = []
 
+  if (params.q) {
+    const kw = `%${params.q}%`
+    where.push('(name LIKE ? OR name_en LIKE ? OR country LIKE ? OR product_line LIKE ? OR role LIKE ? OR tech_domain LIKE ? OR industry LIKE ? OR department LIKE ?)')
+    args.push(kw, kw, kw, kw, kw, kw, kw, kw)
+  }
   if (params.country) {
     where.push('country = ?')
     args.push(params.country)

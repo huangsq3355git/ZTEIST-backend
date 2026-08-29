@@ -127,6 +127,7 @@ app.get('/api/invite/generate', async (req, reply) => {
 // ---- 搜索（需登录，仅返回公开字段） ----
 function parsePeopleParams(q: Record<string, string>): search.SearchParams {
   return {
+    q: q.q,
     country: q.country,
     province: q.province,
     productLine: q.productLine,
