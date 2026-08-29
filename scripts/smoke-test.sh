@@ -36,8 +36,8 @@ TOKEN=$(echo "$REG" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 # 4. 生成专属分享码
 check "invite-generate" "$(curl -s "$BASE/api/invite/generate" -H "Authorization: Bearer $TOKEN")" 'ZTE'
 
-# 5. 搜索（登录态，空结果也算通）
-check "search" "$(curl -s "$BASE/api/search?country=CN" -H "Authorization: Bearer $TOKEN")" '[]'
+# 5. 搜索（登录态，空结果也算通——用必不匹配关键词，避免真实数据干扰）
+check "search" "$(curl -s "$BASE/api/search?q=zzzz_nomatch_9876" -H "Authorization: Bearer $TOKEN")" '[]'
 
 echo ""
 echo "结果：$PASS/5 通过"
