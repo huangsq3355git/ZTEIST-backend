@@ -1,4 +1,5 @@
 import { randomBytes, randomInt, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto'
+import { OAuth2Client } from 'google-auth-library'
 import type { DB } from './db'
 
 // ---- 账号 / uid ----
@@ -146,4 +147,41 @@ export function claimAccount(db: DB, email: string): string {
     Date.now()
   )
   return uid
+}
+
+// ---- Google 一键登录 ----
+
+let _googleClient: OAuth2Client | null = null
+
+export type GoogleLoginResult =
+  | { ok: true; uid: string; isNew: boolean }
+  | { ok: false; reason: 'NOT_CONFIGURED' | 'INVALID_TOKEN' | 'NO_EMAIL' }
+
+/** Google 一键登录：验证 ID token → 映射账号（openid/email）→ 返回 uid。 */
+export async function googleLogin(db: DB, idToken: string): Promise<GoogleLoginResult> {
+  const cid = process.env.GOOGLE_CLIENT_ID
+  if (!cid) return { ok: false, reason: 'NOT_CONFIGURED' }
+  if (!_googleClient) _googleClient = new OAuth2Client(cid)
+
+  try {
+    const ticket = await _googleClient.verifyIdToken({ idToken, audience: cid })
+    const payload = ticket.getPayload()
+    if (!payload?.email || !payload?.sub) return { ok: false, reason: 'NO_EMAIL' }
+    const email = payload.email
+    const sub = payload.sub // Google 用户唯一 ID → 存 openid
+
+    let row = db.prepare('SELECT uid FROM accounts WHERE openid = ?').get(sub) as { uid: string } | undefined
+    if (!row) row = db.prepare('SELECT uid FROM accounts WHERE email = ?').get(email) as { uid: string } | undefined
+
+    if (row) {
+      db.prepare('UPDATE accounts SET openid = ? WHERE uid = ?').run(sub, row.uid)
+      return { ok: true, uid: row.uid, isNew: false }
+    }
+
+    const uid = newUid()
+    db.prepare('INSERT INTO accounts (uid, email, openid, created_at) VALUES (?, ?, ?, ?)').run(uid, email, sub, Date.now())
+    return { ok: true, uid, isNew: true }
+  } catch {
+    return { ok: false, reason: 'INVALID_TOKEN' }
+  }
 }

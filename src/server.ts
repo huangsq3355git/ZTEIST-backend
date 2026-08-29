@@ -92,6 +92,12 @@ app.post<{ Body: { email: string; code: string } }>('/api/auth/verify-code', asy
   return { token: signToken(r.uid), uid: r.uid }
 })
 
+app.post<{ Body: { idToken: string } }>('/api/auth/google', async (req, reply) => {
+  const r = await auth.googleLogin(db, req.body.idToken)
+  if (!r.ok) return reply.code(401).send({ error: r.reason })
+  return { token: signToken(r.uid), uid: r.uid }
+})
+
 // ---- 成员（需登录） ----
 app.post<{ Body: members.MemberInput & { inviteCode?: string } }>(
   '/api/member/create',
