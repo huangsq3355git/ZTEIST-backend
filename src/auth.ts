@@ -86,7 +86,17 @@ export async function sendAuthCode(email: string, code: string): Promise<void> {
     return
   }
 
-  const from = process.env.RESEND_FROM ?? 'ZTEIST 中友会 <noreply@zteist.com>'
+  const from = process.env.RESEND_FROM ?? '中友会 <noreply@zteist.com>'
+  const html = `
+    <div style="font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#333;">
+      <h2 style="margin:0 0 16px;color:#002544;">中友会 ZTEIST</h2>
+      <p style="margin:0 0 8px;">你好，</p>
+      <p style="margin:0 0 8px;">你的登录验证码是：</p>
+      <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:#008ED3;margin:12px 0;">${code}</p>
+      <p style="margin:0 0 8px;">验证码 10 分钟内有效，请勿泄露给他人。</p>
+      <p style="color:#999;font-size:12px;margin-top:24px;">如果不是你本人操作，请忽略此邮件。</p>
+    </div>
+  `
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -97,8 +107,8 @@ export async function sendAuthCode(email: string, code: string): Promise<void> {
       body: JSON.stringify({
         from,
         to: [email],
-        subject: '【ZTEIST 中友会】登录验证码',
-        html: `<p>你的验证码是：<strong>${code}</strong></p><p>10 分钟内有效，请勿泄露。</p>`,
+        subject: '【中友会】登录验证码',
+        html,
       }),
     })
     if (!res.ok) {
