@@ -7,6 +7,7 @@ import * as invite from './invite'
 import * as members from './members'
 import * as search from './search'
 import * as market from './market'
+import * as publish from './publish'
 
 const app = Fastify({ logger: true })
 const db = getDb()
@@ -180,6 +181,29 @@ app.get<{ Querystring: Record<string, string> }>('/api/projects', async (req, re
   const uid = requireUid(req)
   if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
   return market.listProjects(db, { category: req.query.category, country: req.query.country })
+})
+
+// ---- 发布 / 我的发布（会员中心） ----
+app.post<{ Body: publish.PublishInput }>('/api/publish', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  const r = publish.publishPost(db, uid, req.body)
+  if (!r.ok) return reply.code(400).send({ error: r.reason })
+  return { ok: true, id: r.id }
+})
+
+app.get('/api/me/posts', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  return publish.listMyPosts(db, uid)
+})
+
+app.post<{ Body: { kind: string; id: number } }>('/api/post/close', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  const ok = publish.closePost(db, uid, req.body.kind as publish.PublishKind, req.body.id)
+  if (!ok) return reply.code(404).send({ error: 'NOT_FOUND' })
+  return { ok: true }
 })
 
 const port = Number(process.env.PORT ?? 3003)
