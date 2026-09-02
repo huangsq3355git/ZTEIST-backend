@@ -129,3 +129,35 @@ export function getPublicMember(db: DB, uid: string): Partial<MemberRow> | undef
     .prepare(`SELECT ${PUBLIC_MEMBER_COLS.join(', ')} FROM members WHERE uid = ?`)
     .get(uid) as Partial<MemberRow> | undefined
 }
+
+/** 联系方式可见性判断：谁可以看到某个会员的联系方式。 */
+function canViewContact(viewer: MemberRow | undefined, target: MemberRow): boolean {
+  if (!viewer) return false
+  if (viewer.uid === target.uid) return true // 自己
+  // 认证会员（member / expert）
+  if (viewer.member_type === 'member' || viewer.member_type === 'expert') return true
+  // 同部门
+  if (viewer.department && target.department && viewer.department === target.department) return true
+  // 海外同国家（目标非中国，且查看者同国家）
+  if (target.country && target.country !== 'CN' && viewer.country === target.country) return true
+  return false
+}
+
+/** 查看他人档案：公开字段 + 联系方式（按隐私分级）。targetId = members.id */
+export function getMemberProfile(db: DB, viewerUid: string, targetId: number): Partial<MemberRow> | undefined {
+  const target = db.prepare('SELECT * FROM members WHERE id = ?').get(targetId) as MemberRow | undefined
+  if (!target) return undefined
+  const viewer = db.prepare('SELECT * FROM members WHERE uid = ?').get(viewerUid) as MemberRow | undefined
+
+  const result: Partial<MemberRow> = {}
+  for (const col of PUBLIC_MEMBER_COLS) {
+    ;(result as any)[col] = (target as any)[col]
+  }
+  if (canViewContact(viewer, target)) {
+    result.wechat = target.wechat
+    result.phone = target.phone
+    result.linkedin = target.linkedin
+    result.whatsapp = target.whatsapp
+  }
+  return result
+}

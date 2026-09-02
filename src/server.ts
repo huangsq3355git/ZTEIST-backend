@@ -124,6 +124,15 @@ app.get('/api/member/me', async (req, reply) => {
   return m
 })
 
+// 查看他人档案（联系方式按隐私分级可见）
+app.get<{ Params: { id: string } }>('/api/member/:id', async (req, reply) => {
+  const viewerUid = requireUid(req)
+  if (!viewerUid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  const m = members.getMemberProfile(db, viewerUid, Number(req.params.id))
+  if (!m) return reply.code(404).send({ error: 'NO_PROFILE' })
+  return m
+})
+
 // ---- 邀请码（需登录） ----
 app.get('/api/invite/generate', async (req, reply) => {
   const uid = requireUid(req)
