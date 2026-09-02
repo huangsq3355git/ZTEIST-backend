@@ -168,19 +168,20 @@ app.get<{ Querystring: Record<string, string> }>('/api/supply-demand', async (re
     type: req.query.type,
     category: req.query.category,
     country: req.query.country,
+    lang: req.query.lang,
   })
 })
 
 app.get<{ Querystring: Record<string, string> }>('/api/jobs', async (req, reply) => {
   const uid = requireUid(req)
   if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
-  return market.listJobs(db, { role: req.query.role, country: req.query.country })
+  return market.listJobs(db, { role: req.query.role, country: req.query.country, lang: req.query.lang })
 })
 
 app.get<{ Querystring: Record<string, string> }>('/api/projects', async (req, reply) => {
   const uid = requireUid(req)
   if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
-  return market.listProjects(db, { category: req.query.category, country: req.query.country })
+  return market.listProjects(db, { category: req.query.category, country: req.query.country, lang: req.query.lang })
 })
 
 // ---- 发布 / 我的发布（会员中心） ----

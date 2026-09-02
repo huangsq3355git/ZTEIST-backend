@@ -4,6 +4,7 @@ export type PublishKind = 'supply_demand' | 'job' | 'project'
 
 export interface PublishInput {
   kind: PublishKind
+  lang?: string // 'zh' | 'en'，发布页面语言
   // 供求
   type?: string // supply | demand
   category?: string
@@ -30,26 +31,27 @@ export function publishPost(db: DB, uid: string, input: PublishInput): PublishRe
   if (!input.title?.trim()) return { ok: false, reason: 'TITLE_REQUIRED' }
 
   const now = Date.now()
+  const lang = input.lang === 'en' ? 'en' : 'zh'
   let info: { lastInsertRowid: number | bigint }
 
   if (input.kind === 'supply_demand') {
     info = db
       .prepare(
-        'INSERT INTO supply_demand (uid, type, category, title, content, country, contact, expiry, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO supply_demand (uid, type, category, title, content, country, contact, expiry, status, lang, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .run(uid, input.type ?? null, input.category ?? null, input.title.trim(), input.content ?? null, input.country ?? null, input.contact ?? null, input.expiry ?? null, 'active', now)
+      .run(uid, input.type ?? null, input.category ?? null, input.title.trim(), input.content ?? null, input.country ?? null, input.contact ?? null, input.expiry ?? null, 'active', lang, now)
   } else if (input.kind === 'job') {
     info = db
       .prepare(
-        'INSERT INTO jobs (uid, title, role, requirements, country, contact, expiry, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO jobs (uid, title, role, requirements, country, contact, expiry, status, lang, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .run(uid, input.title.trim(), input.role ?? null, input.requirements ?? null, input.country ?? null, input.contact ?? null, input.expiry ?? null, 'active', now)
+      .run(uid, input.title.trim(), input.role ?? null, input.requirements ?? null, input.country ?? null, input.contact ?? null, input.expiry ?? null, 'active', lang, now)
   } else if (input.kind === 'project') {
     info = db
       .prepare(
-        'INSERT INTO projects (uid, title, category, description, country, budget, timeline, contact, expiry, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO projects (uid, title, category, description, country, budget, timeline, contact, expiry, status, lang, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       )
-      .run(uid, input.title.trim(), input.category ?? null, input.description ?? null, input.country ?? null, input.budget ?? null, input.timeline ?? null, input.contact ?? null, input.expiry ?? null, 'active', now)
+      .run(uid, input.title.trim(), input.category ?? null, input.description ?? null, input.country ?? null, input.budget ?? null, input.timeline ?? null, input.contact ?? null, input.expiry ?? null, 'active', lang, now)
   } else {
     return { ok: false, reason: 'INVALID_KIND' }
   }

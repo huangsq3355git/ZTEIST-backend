@@ -4,7 +4,7 @@ import type { DB } from './db'
 
 export function listSupplyDemand(
   db: DB,
-  params: { type?: string; category?: string; country?: string },
+  params: { type?: string; category?: string; country?: string; lang?: string },
   limit = 50
 ) {
   const where = ['status = ?']
@@ -21,13 +21,17 @@ export function listSupplyDemand(
     where.push('country = ?')
     args.push(params.country)
   }
+  if (params.lang) {
+    where.push('lang = ?')
+    args.push(params.lang)
+  }
   const cols = 'id, type, category, title, content, country, expiry, created_at'
   const sql = `SELECT ${cols} FROM supply_demand WHERE ${where.join(' AND ')} ORDER BY id DESC LIMIT ?`
   args.push(limit)
   return db.prepare(sql).all(...args)
 }
 
-export function listJobs(db: DB, params: { role?: string; country?: string }, limit = 50) {
+export function listJobs(db: DB, params: { role?: string; country?: string; lang?: string }, limit = 50) {
   const where = ['status = ?']
   const args: unknown[] = ['active']
   if (params.role) {
@@ -38,6 +42,10 @@ export function listJobs(db: DB, params: { role?: string; country?: string }, li
     where.push('country = ?')
     args.push(params.country)
   }
+  if (params.lang) {
+    where.push('lang = ?')
+    args.push(params.lang)
+  }
   const cols = 'id, title, role, requirements, country, expiry, created_at'
   const sql = `SELECT ${cols} FROM jobs WHERE ${where.join(' AND ')} ORDER BY id DESC LIMIT ?`
   args.push(limit)
@@ -46,7 +54,7 @@ export function listJobs(db: DB, params: { role?: string; country?: string }, li
 
 export function listProjects(
   db: DB,
-  params: { category?: string; country?: string },
+  params: { category?: string; country?: string; lang?: string },
   limit = 50
 ) {
   const where = ['status = ?']
@@ -58,6 +66,10 @@ export function listProjects(
   if (params.country) {
     where.push('country = ?')
     args.push(params.country)
+  }
+  if (params.lang) {
+    where.push('lang = ?')
+    args.push(params.lang)
   }
   const cols = 'id, title, category, description, country, budget, timeline, expiry, created_at'
   const sql = `SELECT ${cols} FROM projects WHERE ${where.join(' AND ')} ORDER BY id DESC LIMIT ?`

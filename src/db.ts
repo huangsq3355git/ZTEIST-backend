@@ -148,6 +148,11 @@ function initSchema(db: DB): void {
   ensureColumn(db, 'members', 'industry', 'industry TEXT')
   ensureColumn(db, 'members', 'employment_status', 'employment_status TEXT')
 
+  // 发布内容的语言区隔：zh / en（按发布页面语言打标）
+  ensureColumn(db, 'supply_demand', 'lang', "lang TEXT NOT NULL DEFAULT 'zh'")
+  ensureColumn(db, 'jobs', 'lang', "lang TEXT NOT NULL DEFAULT 'zh'")
+  ensureColumn(db, 'projects', 'lang', "lang TEXT NOT NULL DEFAULT 'zh'")
+
   seedCountries(db)
 }
 
