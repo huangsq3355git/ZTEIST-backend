@@ -10,9 +10,9 @@ export interface Country {
 export const COUNTRIES: Country[] = [
   // —— 亚洲 ——
   { code: 'CN', zh: '中国', en: 'China', region: '亚洲' },
-  { code: 'HK', zh: '中国香港', en: 'Hong Kong', region: '亚洲' },
-  { code: 'TW', zh: '中国台湾', en: 'Taiwan', region: '亚洲' },
-  { code: 'MO', zh: '中国澳门', en: 'Macau', region: '亚洲' },
+  { code: 'HK', zh: '中国香港', en: 'China Hong Kong', region: '亚洲' },
+  { code: 'TW', zh: '中国台湾', en: 'China Taiwan', region: '亚洲' },
+  { code: 'MO', zh: '中国澳门', en: 'China Macau', region: '亚洲' },
   { code: 'JP', zh: '日本', en: 'Japan', region: '亚洲' },
   { code: 'KR', zh: '韩国', en: 'South Korea', region: '亚洲' },
   { code: 'KP', zh: '朝鲜', en: 'North Korea', region: '亚洲' },

@@ -154,6 +154,11 @@ function initSchema(db: DB): void {
   ensureColumn(db, 'projects', 'lang', "lang TEXT NOT NULL DEFAULT 'zh'")
 
   seedCountries(db)
+
+  // 修正：香港/澳门/台湾英文名加 China 前缀（幂等）
+  db.prepare("UPDATE countries SET name_en = 'China Hong Kong' WHERE code = 'HK'").run()
+  db.prepare("UPDATE countries SET name_en = 'China Taiwan' WHERE code = 'TW'").run()
+  db.prepare("UPDATE countries SET name_en = 'China Macau' WHERE code = 'MO'").run()
 }
 
 function ensureColumn(db: DB, table: string, column: string, ddl: string): void {
