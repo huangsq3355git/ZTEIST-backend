@@ -109,10 +109,12 @@ app.post<{ Body: members.MemberInput & { inviteCode?: string } }>(
     const r = members.createMember(db, uid, req.body)
     if (!r.ok) return reply.code(400).send({ error: r.reason })
 
+    let inviteWarning: string | null = null
     if (req.body.inviteCode) {
-      invite.attributeInvite(db, req.body.inviteCode, uid)
+      const a = invite.attributeInvite(db, req.body.inviteCode, uid)
+      if (!a.ok) inviteWarning = a.reason
     }
-    return { ok: true, memberId: r.memberId }
+    return { ok: true, memberId: r.memberId, inviteWarning }
   }
 )
 
