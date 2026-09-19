@@ -8,6 +8,7 @@ import * as members from './members'
 import * as search from './search'
 import * as market from './market'
 import * as publish from './publish'
+import * as payment from './payment'
 
 const app = Fastify({ logger: true })
 const db = getDb()
@@ -216,6 +217,21 @@ app.post<{ Body: { kind: string; id: number } }>('/api/post/close', async (req, 
   const ok = publish.closePost(db, uid, req.body.kind as publish.PublishKind, req.body.id)
   if (!ok) return reply.code(404).send({ error: 'NOT_FOUND' })
   return { ok: true }
+})
+
+// ---- 会员付费（Stripe Checkout） ----
+app.post<{ Body: { tier: string } }>('/api/membership/checkout', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  const r = await payment.createCheckoutSession(uid, req.body?.tier)
+  if ('error' in r) return reply.code(400).send({ error: r.error })
+  return r
+})
+
+// Stripe 支付回调（生产环境需验证 stripe-signature）
+app.post('/api/membership/webhook', async (req) => {
+  payment.handleWebhookEvent(db, req.body)
+  return { received: true }
 })
 
 const port = Number(process.env.PORT ?? 3003)
