@@ -220,10 +220,11 @@ app.post<{ Body: { kind: string; id: number } }>('/api/post/close', async (req, 
 })
 
 // ---- 会员付费（Stripe Checkout） ----
-app.post<{ Body: { tier: string } }>('/api/membership/checkout', async (req, reply) => {
+app.post<{ Body: { tier: string; currency?: string } }>('/api/membership/checkout', async (req, reply) => {
   const uid = requireUid(req)
   if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
-  const r = await payment.createCheckoutSession(uid, req.body?.tier)
+  const currency = req.body?.currency === 'usd' ? 'usd' : 'cny'
+  const r = await payment.createCheckoutSession(uid, req.body?.tier, currency)
   if ('error' in r) return reply.code(400).send({ error: r.error })
   return r
 })

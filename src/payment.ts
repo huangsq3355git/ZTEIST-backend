@@ -5,14 +5,16 @@ const STRIPE_API = 'https://api.stripe.com/v1'
 
 export type CheckoutResult = { url: string } | { error: string }
 
-// 会员付费档位（金额单位：分）
-const PRICES: Record<string, { amount: number; name: string }> = {
-  supporter: { amount: 9900, name: '支持会员' },
-  enterprise: { amount: 199900, name: '企业会员' },
+export type Currency = 'cny' | 'usd'
+
+// 会员付费档位（金额单位：分；cny 人民币 / usd 美元）
+const PRICES: Record<string, { name: string; cny: number; usd: number }> = {
+  supporter: { name: '支持会员', cny: 9900, usd: 1488 },
+  enterprise: { name: '企业会员', cny: 199900, usd: 29900 },
 }
 
 /** 创建 Checkout Session，返回跳转支付链接。 */
-export async function createCheckoutSession(uid: string, tier: string): Promise<CheckoutResult> {
+export async function createCheckoutSession(uid: string, tier: string, currency: Currency = 'cny'): Promise<CheckoutResult> {
   const sk = process.env.STRIPE_SECRET_KEY
   if (!sk) return { error: 'NOT_CONFIGURED' }
   const price = PRICES[tier]
@@ -21,9 +23,9 @@ export async function createCheckoutSession(uid: string, tier: string): Promise<
   const site = process.env.SITE_URL || 'https://zteist.com'
   const params = new URLSearchParams({
     mode: 'payment',
-    'line_items[0][price_data][currency]': 'cny',
+    'line_items[0][price_data][currency]': currency,
     'line_items[0][price_data][product_data][name]': `ZTEIST ${price.name}`,
-    'line_items[0][price_data][unit_amount]': String(price.amount),
+    'line_items[0][price_data][unit_amount]': String(price[currency]),
     'line_items[0][quantity]': '1',
     success_url: `${site}/zh/account/?payment=success`,
     cancel_url: `${site}/zh/account/?payment=cancel`,
