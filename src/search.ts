@@ -31,6 +31,7 @@ export interface PublicMember {
   level: string | null
   member_type: string
   referrer_name: string | null
+  referrer_name_en: string | null
 }
 
 /**
@@ -85,7 +86,7 @@ export function searchMembers(db: DB, params: SearchParams, limit = 50): PublicM
   }
 
   const sql =
-    `SELECT ${PUBLIC_MEMBER_COLS.join(', ')}, (SELECT name FROM members r WHERE r.uid = members.referrer_uid) AS referrer_name FROM members` +
+    `SELECT ${PUBLIC_MEMBER_COLS.join(', ')}, (SELECT name FROM members r WHERE r.uid = members.referrer_uid) AS referrer_name, (SELECT name_en FROM members r WHERE r.uid = members.referrer_uid) AS referrer_name_en FROM members` +
     (where.length ? ' WHERE ' + where.join(' AND ') : '') +
     ' ORDER BY id LIMIT ?'
   args.push(limit)
