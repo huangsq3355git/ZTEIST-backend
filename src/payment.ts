@@ -30,12 +30,13 @@ export async function createCheckoutSession(uid: string, tier: string, currency:
   if (!priceId) return { error: 'INVALID_CURRENCY' }
 
   const site = process.env.SITE_URL || 'https://zteist.com'
+  const langPath = currency === 'usd' ? 'en' : 'zh'
   const params = new URLSearchParams({
     mode: 'payment',
     'line_items[0][price]': priceId,
     'line_items[0][quantity]': '1',
-    success_url: `${site}/zh/account/?payment=success`,
-    cancel_url: `${site}/zh/account/?payment=cancel`,
+    success_url: `${site}/${langPath}/account/?payment=success`,
+    cancel_url: `${site}/${langPath}/account/?payment=cancel`,
     'metadata[uid]': uid,
     'metadata[tier]': tier,
   })
