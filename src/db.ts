@@ -69,6 +69,7 @@ function initSchema(db: DB): void {
       invite_code  TEXT,                -- 注册用的分享码（归因）
       referrer_uid TEXT,                -- 推荐人 uid
       member_type  TEXT NOT NULL DEFAULT 'trial',  -- trial=观察期/member=认证会员/expert=专家库/user=普通
+      is_admin     INTEGER NOT NULL DEFAULT 0,     -- 1=管理员（超级权限，看全部资料）
       created_at   INTEGER NOT NULL
     );
 
@@ -148,6 +149,7 @@ function initSchema(db: DB): void {
   ensureColumn(db, 'members', 'industry', 'industry TEXT')
   ensureColumn(db, 'members', 'employment_status', 'employment_status TEXT')
   ensureColumn(db, 'members', 'paid_tier', 'paid_tier TEXT')
+  ensureColumn(db, 'members', 'is_admin', 'is_admin INTEGER NOT NULL DEFAULT 0')
 
   // 发布内容的语言区隔：zh / en（按发布页面语言打标）
   ensureColumn(db, 'supply_demand', 'lang', "lang TEXT NOT NULL DEFAULT 'zh'")

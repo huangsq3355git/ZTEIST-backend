@@ -62,6 +62,7 @@ export interface MemberRow {
   invite_code: string | null
   referrer_uid: string | null
   member_type: string
+  is_admin: number
   created_at: number
 }
 
@@ -134,6 +135,8 @@ export function getPublicMember(db: DB, uid: string): Partial<MemberRow> | undef
 function canViewContact(viewer: MemberRow | undefined, target: MemberRow): boolean {
   if (!viewer) return false
   if (viewer.uid === target.uid) return true // 自己
+  // 管理员：超级权限，看全部资料
+  if (viewer.is_admin) return true
   // 认证会员（member / expert）
   if (viewer.member_type === 'member' || viewer.member_type === 'expert') return true
   // 同部门
@@ -144,12 +147,16 @@ function canViewContact(viewer: MemberRow | undefined, target: MemberRow): boole
 }
 
 /** 查看他人档案：公开字段 + 联系方式（按隐私分级）。targetId = members.id */
-export function getMemberProfile(db: DB, viewerUid: string, targetId: number): Partial<MemberRow> | undefined {
+export function getMemberProfile(
+  db: DB,
+  viewerUid: string,
+  targetId: number
+): (Partial<MemberRow> & { email?: string | null }) | undefined {
   const target = db.prepare('SELECT * FROM members WHERE id = ?').get(targetId) as MemberRow | undefined
   if (!target) return undefined
   const viewer = db.prepare('SELECT * FROM members WHERE uid = ?').get(viewerUid) as MemberRow | undefined
 
-  const result: Partial<MemberRow> = {}
+  const result: Partial<MemberRow> & { email?: string | null } = {}
   for (const col of PUBLIC_MEMBER_COLS) {
     ;(result as any)[col] = (target as any)[col]
   }
@@ -158,6 +165,11 @@ export function getMemberProfile(db: DB, viewerUid: string, targetId: number): P
     result.phone = target.phone
     result.linkedin = target.linkedin
     result.whatsapp = target.whatsapp
+  }
+  // 管理员额外可见邮箱（邮箱在 accounts 表）
+  if (viewer?.is_admin) {
+    const acc = db.prepare('SELECT email FROM accounts WHERE uid = ?').get(target.uid) as { email: string | null } | undefined
+    result.email = acc?.email ?? null
   }
   return result
 }
