@@ -119,8 +119,20 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
   return { ok: true, memberId: Number(info.lastInsertRowid) }
 }
 
+// 观察期时长：满 7 天自动转为认证会员
+const TRIAL_DAYS = 7
+
+/** 观察期到期自动转认证会员（幂等）。返回本次升级人数。 */
+export function promoteExpiredTrials(db: DB): number {
+  const cutoff = Date.now() - TRIAL_DAYS * 24 * 60 * 60 * 1000
+  return db
+    .prepare("UPDATE members SET member_type = 'member' WHERE member_type = 'trial' AND created_at <= ?")
+    .run(cutoff).changes
+}
+
 /** 自己的完整档案（含联系方式）。 */
 export function getMember(db: DB, uid: string): MemberRow | undefined {
+  promoteExpiredTrials(db) // 懒触发：观察期到期即转认证会员（本人资料即时正确）
   return db.prepare('SELECT * FROM members WHERE uid = ?').get(uid) as MemberRow | undefined
 }
 
