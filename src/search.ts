@@ -37,8 +37,9 @@ export interface PublicMember {
 /**
  * 基础搜索：关键词组合 → SQL（0 token，不做 AI 匹配）。
  * 在职年代按「区间重叠」匹配：搜索窗口与成员在职区间有交集。
+ * 默认返回上限 500（全站 ~250 人，成员目录应显示全部而非只 50 人）。
  */
-export function searchMembers(db: DB, params: SearchParams, limit = 50): PublicMember[] {
+export function searchMembers(db: DB, params: SearchParams, limit = 500): PublicMember[] {
   const where: string[] = []
   const args: unknown[] = []
 
