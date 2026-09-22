@@ -8,16 +8,16 @@ export type CheckoutResult = { url: string } | { error: string }
 
 export type Currency = 'cny' | 'usd'
 
-// 会员付费档位 → Stripe 固定价格 ID（测试账号「LEADING HK ZTEIST 沙盒」，一次性付款）
+// 会员付费档位 → Stripe 固定价格 ID（LIVE 账号「LEADING HK ZTEIST」，一次性付款）
 // cny 人民币 / usd 美元；金额：支持会员 ¥99/$14.88，企业会员 ¥1999/$299
 const PRICES: Record<string, Record<Currency, string>> = {
   supporter: {
-    cny: 'price_1UI1C1CcG05qRfUO4dTecIih',
-    usd: 'price_1UI1C1CcG05qRfUOelFmn3Jr',
+    cny: 'price_1UIRgeEFE5CUTKy3UqhbOox2',
+    usd: 'price_1UIRgfEFE5CUTKy3X9mVoNg9',
   },
   enterprise: {
-    cny: 'price_1UI1C2CcG05qRfUOB786aFC9',
-    usd: 'price_1UI1C2CcG05qRfUO9tjbMOow',
+    cny: 'price_1UIRgfEFE5CUTKy3zsbn8O9e',
+    usd: 'price_1UIRggEFE5CUTKy3exFgCLhB',
   },
 }
 
