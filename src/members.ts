@@ -18,6 +18,7 @@ export const PUBLIC_MEMBER_COLS = [
   'province',
   'level',
   'member_type',
+  'paid_tier',
 ]
 
 export interface MemberInput {
@@ -65,6 +66,7 @@ export interface MemberRow {
   invite_code: string | null
   referrer_uid: string | null
   member_type: string
+  paid_tier: string | null
   is_admin: number
   created_at: number
 }
@@ -208,15 +210,16 @@ export function getMemberProfile(
   db: DB,
   viewerUid: string,
   targetId: number
-): (Partial<MemberRow> & { email?: string | null }) | undefined {
+): (Partial<MemberRow> & { email?: string | null; has_contact?: boolean }) | undefined {
   const target = db.prepare('SELECT * FROM members WHERE id = ?').get(targetId) as MemberRow | undefined
   if (!target) return undefined
   const viewer = db.prepare('SELECT * FROM members WHERE uid = ?').get(viewerUid) as MemberRow | undefined
 
-  const result: Partial<MemberRow> & { email?: string | null } = {}
+  const result: Partial<MemberRow> & { email?: string | null; has_contact?: boolean } = {}
   for (const col of PUBLIC_MEMBER_COLS) {
     ;(result as any)[col] = (target as any)[col]
   }
+  result.has_contact = !!(target.wechat || target.phone || target.linkedin || target.whatsapp)
   if (canViewContact(viewer, target)) {
     result.wechat = target.wechat
     result.phone = target.phone

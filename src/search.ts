@@ -30,6 +30,8 @@ export interface PublicMember {
   province: string | null
   level: string | null
   member_type: string
+  paid_tier: string | null
+  residence_countries: string
   referrer_name: string | null
   referrer_name_en: string | null
 }
