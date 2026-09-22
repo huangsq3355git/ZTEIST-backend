@@ -137,6 +137,15 @@ app.get('/api/member/me', async (req, reply) => {
   return m
 })
 
+// 编辑自己的档案
+app.post<{ Body: members.MemberInput }>('/api/member/update', async (req, reply) => {
+  const uid = requireUid(req)
+  if (!uid) return reply.code(401).send({ error: 'UNAUTHORIZED' })
+  const r = members.updateMember(db, uid, req.body)
+  if (!r.ok) return reply.code(400).send({ error: 'UPDATE_FAILED' })
+  return { ok: true }
+})
+
 // 查看他人档案（联系方式按隐私分级可见）
 app.get<{ Params: { id: string } }>('/api/member/:id', async (req, reply) => {
   const viewerUid = requireUid(req)

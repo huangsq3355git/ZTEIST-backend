@@ -49,8 +49,9 @@ export function searchMembers(db: DB, params: SearchParams, limit = 500): Public
     args.push(kw, kw, kw, kw, kw, kw, kw, kw)
   }
   if (params.country) {
-    where.push('country = ?')
-    args.push(params.country)
+    // 目标国家：现居该国，或曾常驻该国（熟悉该国）
+    where.push("(country = ? OR (',' || COALESCE(residence_countries, '') || ',') LIKE '%,' || ? || ',%')")
+    args.push(params.country, params.country)
   }
   if (params.province) {
     where.push('province = ?')

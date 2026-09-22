@@ -6,6 +6,7 @@ export const PUBLIC_MEMBER_COLS = [
   'name',
   'name_en',
   'country',
+  'residence_countries',
   'era_start',
   'era_end',
   'product_line',
@@ -32,6 +33,7 @@ export interface MemberInput {
   industry?: string | null
   employmentStatus?: string | null
   province?: string | null
+  residenceCountries?: string[] | null
   level?: string | null
   wechat?: string | null
   linkedin?: string | null
@@ -54,6 +56,7 @@ export interface MemberRow {
   industry: string | null
   employment_status: string | null
   province: string | null
+  residence_countries: string
   level: string | null
   wechat: string | null
   linkedin: string | null
@@ -84,11 +87,11 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
   const info = db
     .prepare(
       `INSERT INTO members (
-         uid, name, name_en, country, province, era_start, era_end, product_line,
+         uid, name, name_en, country, province, residence_countries, era_start, era_end, product_line,
          role, tech_domain, industry, employment_status, department, level, member_type,
          wechat, linkedin, whatsapp, phone, created_at
        ) VALUES (
-         @uid, @name, @nameEn, @country, @province, @eraStart, @eraEnd, @productLine,
+         @uid, @name, @nameEn, @country, @province, @residenceCountries, @eraStart, @eraEnd, @productLine,
          @role, @techDomain, @industry, @employmentStatus, @department, @level, @memberType,
          @wechat, @linkedin, @whatsapp, @phone, @createdAt
        )`
@@ -99,6 +102,7 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
       nameEn: input.nameEn ?? null,
       country,
       province: input.province ?? null,
+      residenceCountries: (input.residenceCountries ?? []).join(','),
       eraStart: input.eraStart ?? null,
       eraEnd: input.eraEnd ?? null,
       productLine: input.productLine ?? null,
@@ -117,6 +121,47 @@ export function createMember(db: DB, uid: string, input: MemberInput): CreateMem
     })
 
   return { ok: true, memberId: Number(info.lastInsertRowid) }
+}
+
+/** 编辑自己的档案（只改可编辑字段；member_type/is_admin/paid_tier 等系统字段不动）。 */
+export function updateMember(db: DB, uid: string, input: MemberInput): { ok: boolean } {
+  const name = input.name?.trim()
+  const country = input.country?.trim()
+  if (!name || !country) return { ok: false }
+
+  const info = db
+    .prepare(
+      `UPDATE members SET
+         name = @name, name_en = @nameEn, country = @country, province = @province,
+         residence_countries = @residenceCountries, era_start = @eraStart, era_end = @eraEnd,
+         product_line = @productLine, role = @role, tech_domain = @techDomain,
+         industry = @industry, employment_status = @employmentStatus, department = @department,
+         level = @level, wechat = @wechat, linkedin = @linkedin, whatsapp = @whatsapp, phone = @phone
+       WHERE uid = @uid`
+    )
+    .run({
+      uid,
+      name,
+      nameEn: input.nameEn ?? null,
+      country,
+      province: input.province ?? null,
+      residenceCountries: (input.residenceCountries ?? []).join(','),
+      eraStart: input.eraStart ?? null,
+      eraEnd: input.eraEnd ?? null,
+      productLine: input.productLine ?? null,
+      role: input.role ?? null,
+      techDomain: input.techDomain ?? null,
+      industry: input.industry ?? null,
+      employmentStatus: input.employmentStatus ?? null,
+      department: input.department ?? null,
+      level: input.level ?? null,
+      wechat: input.wechat ?? null,
+      linkedin: input.linkedin ?? null,
+      whatsapp: input.whatsapp ?? null,
+      phone: input.phone ?? null,
+    })
+
+  return { ok: info.changes > 0 }
 }
 
 // 观察期时长：满 7 天自动转为认证会员

@@ -53,6 +53,7 @@ function initSchema(db: DB): void {
       name_en      TEXT,                -- 英文名/拼音（外籍）
       country      TEXT NOT NULL,       -- 所在地国家（现状，自选全世界）
       province     TEXT,                -- 所在省份（现状，国内用户）
+      residence_countries TEXT NOT NULL DEFAULT '',  -- 常驻国家（多选，逗号分隔 ISO 码）
       era_start    INTEGER,             -- 入职年
       era_end      INTEGER,             -- 离职年
       product_line TEXT,                -- 产品线：手机/基站/芯片/...
@@ -150,6 +151,7 @@ function initSchema(db: DB): void {
   ensureColumn(db, 'members', 'employment_status', 'employment_status TEXT')
   ensureColumn(db, 'members', 'paid_tier', 'paid_tier TEXT')
   ensureColumn(db, 'members', 'is_admin', 'is_admin INTEGER NOT NULL DEFAULT 0')
+  ensureColumn(db, 'members', 'residence_countries', "residence_countries TEXT NOT NULL DEFAULT ''")
 
   // 发布内容的语言区隔：zh / en（按发布页面语言打标）
   ensureColumn(db, 'supply_demand', 'lang', "lang TEXT NOT NULL DEFAULT 'zh'")
