@@ -13,6 +13,16 @@ import * as payment from './payment'
 const app = Fastify({ logger: true })
 const db = getDb()
 
+// Stripe webhook 需要原始 body 做签名校验（保留 rawBody，同时正常解析 JSON）
+app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+  ;(req as any).rawBody = body
+  try {
+    done(null, JSON.parse(body as string))
+  } catch (err) {
+    done(err as Error, undefined)
+  }
+})
+
 // ---- 登录态 token（HMAC 签名，无外部依赖） ----
 const AUTH_SECRET = process.env.AUTH_SECRET ?? 'dev-secret-change-me'
 
@@ -229,8 +239,15 @@ app.post<{ Body: { tier: string; currency?: string } }>('/api/membership/checkou
   return r
 })
 
-// Stripe 支付回调（生产环境需验证 stripe-signature）
-app.post('/api/membership/webhook', async (req) => {
+// Stripe 支付回调：校验签名后升级付费档位
+app.post('/api/membership/webhook', async (req, reply) => {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!secret) return reply.code(400).send({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' })
+  const signature = (req.headers['stripe-signature'] as string) || ''
+  const raw = (req as any).rawBody
+  if (!payment.verifyStripeSignature(raw, signature, secret)) {
+    return reply.code(400).send({ error: 'INVALID_SIGNATURE' })
+  }
   payment.handleWebhookEvent(db, req.body)
   return { received: true }
 })

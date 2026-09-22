@@ -1,4 +1,5 @@
 import type { DB } from './db'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 
 // 用 Stripe REST API + Node 内置 fetch，不依赖 SDK
 const STRIPE_API = 'https://api.stripe.com/v1'
@@ -56,6 +57,35 @@ export async function createCheckoutSession(uid: string, tier: string, currency:
   } catch {
     return { error: 'STRIPE_ERROR' }
   }
+}
+
+/**
+ * 校验 Stripe webhook 签名（原始 body + stripe-signature 头）。
+ * 5 分钟时间容差防重放。
+ */
+export function verifyStripeSignature(payload: string, signature: string, secret: string): boolean {
+  if (!signature || !payload) return false
+  const parts = signature.split(',')
+  let ts = ''
+  const sigs: string[] = []
+  for (const p of parts) {
+    const i = p.indexOf('=')
+    if (i < 0) continue
+    const k = p.slice(0, i)
+    const v = p.slice(i + 1)
+    if (k === 't') ts = v
+    else if (k === 'v1') sigs.push(v)
+  }
+  if (!ts || sigs.length === 0) return false
+  if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) return false
+  const expected = createHmac('sha256', secret).update(`${ts}.${payload}`).digest('hex')
+  return sigs.some((sig) => {
+    try {
+      return timingSafeEqual(Buffer.from(sig), Buffer.from(expected))
+    } catch {
+      return false
+    }
+  })
 }
 
 /** 处理支付回调：checkout.session.completed → 升级付费档位。 */
